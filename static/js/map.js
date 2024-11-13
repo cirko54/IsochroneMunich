@@ -1,89 +1,59 @@
 document.addEventListener("DOMContentLoaded", function() {
     // Initialisieren der Karte und Zentrierung auf München
     // Initialize map with custom zoom control positioning
-const map = L.map('map', {
-    zoomControl: true
-}).setView([48.1351, 11.5820], 10);
+// Initialisieren der Leaflet-Karte
+const map = L.map('map').setView([48.137154, 11.576124], 13);  // Zentrum auf München setzen
 
-// Adjust CSS if necessary to ensure map controls aren’t obscured
+// Tile-Layer hinzufügen (OpenStreetMap als Beispiel)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
 
-    // Hinzufügen von OpenStreetMap-Tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+// Cluster-Gruppe erstellen für die Karte
+const markers = L.markerClusterGroup();
+map.addLayer(markers);
 
-    // Separate Layer für Marker-Clustering und Isochronen
-    var markerClusterGroup = L.markerClusterGroup();
-    var isochroneLayer = L.layerGroup();  // Separater Layer für Isochronen
-    map.addLayer(markerClusterGroup);
-    map.addLayer(isochroneLayer);
+let selectedClusterId = null;  // Speichern der ausgewählten Cluster-ID für Berechnungen
 
-
-    // Funktion zum Laden der Haltestellen im aktuellen Kartenbereich
-let selectedStopId = null;
-const markers = L.markerClusterGroup();  // Initialize the cluster group
-
-function loadStops() {
-    const currentZoom = map.getZoom();
-    console.log(`Current zoom level: ${currentZoom}`);
-
-    // Only load markers if zoom level is 13 or higher
-    if (currentZoom < 13) {
-        console.log("Zoom level too low, clearing markers.");
-        markers.clearLayers();  // Clear markers if zoomed out
-        return;
-    }
-
+// Funktion zum Laden der Cluster im aktuellen Kartenbereich
+function loadClustersInView() {
     const bounds = map.getBounds();
-    const url = `/get_stops?min_lat=${bounds.getSouth()}&max_lat=${bounds.getNorth()}&min_lon=${bounds.getWest()}&max_lon=${bounds.getEast()}`;
-    console.log(`Fetching stops within bounds: ${bounds}`);
+    const minLat = bounds.getSouth();
+    const maxLat = bounds.getNorth();
+    const minLon = bounds.getWest();
+    const maxLon = bounds.getEast();
 
-    fetch(url)
+    fetch(`/get_clusters_by_area?min_lat=${minLat}&max_lat=${maxLat}&min_lon=${minLon}&max_lon=${maxLon}`)
         .then(response => response.json())
         .then(data => {
-            console.log("Stops data received:", data);
+            console.log("Cluster data received:", data);  // Debug-Ausgabe
 
-            // Clear previous markers to avoid duplicates
-            markers.clearLayers();
+            markers.clearLayers();  // Vorherige Marker entfernen
 
-            // Add new markers to the cluster group
             data.features.forEach(feature => {
-                const coordinates = feature.geometry.coordinates;
-                const stopName = feature.properties.stop_name;
-                const stopId = feature.properties.stop_id;
+                const coords = feature.geometry.coordinates;
+                const marker = L.marker([coords[1], coords[0]]);
 
-                const marker = L.marker([coordinates[1], coordinates[0]])
-                    .bindPopup(`<b>${stopName}</b>`)
-                    .on('click', () => {
-                        selectedStopId = stopId;
-                        console.log(`Selected stop: ${stopName} (${stopId})`);
-                    });
+                const stopNames = feature.properties.stop_names.join(", ");
+                marker.bindPopup(`Cluster ID: ${feature.properties.cluster_id}<br>Haltestellen: ${stopNames}`);
 
-                markers.addLayer(marker);  // Add marker to the cluster group
+                markers.addLayer(marker);
+
+                marker.on('click', () => {
+                    selectedClusterId = feature.properties.cluster_id;
+                    console.log("Selected Cluster:", selectedClusterId);
+                });
             });
 
-            // Add the cluster group to the map if it's not already added
-            if (!map.hasLayer(markers)) {
-                map.addLayer(markers);
-                console.log("Markers layer added to map.");
-            }
+            map.addLayer(markers);
         })
-        .catch(error => console.error('Error loading stops:', error));
+        .catch(error => console.error("Error loading clusters:", error));
 }
 
-// Load stops on initial map load and when the map view changes
-map.on('moveend', loadStops);
-map.on('zoomend', loadStops);  // Trigger loadStops on zoom change
-loadStops();
-
-document.getElementById('calculate-button').addEventListener('click', () => {
-    if (!selectedStopId) {
-        alert("No stop selected. Select a stop first.");
-        return;
-    }
-    calculateIsochrone(selectedStopId);
-});
+// Initiales Laden und Aktualisierung bei Kartenbewegungen
+map.on('moveend', loadClustersInView);
+loadClustersInView();
 
 function calculateIsochrone(stopId) {
     const maxTravelTime = document.getElementById('max-travel-time').value;
@@ -98,7 +68,4 @@ function calculateIsochrone(stopId) {
         .catch(error => console.error('Error calculating isochrone:', error));
 }
 
-    // Haltestellen initial laden und bei Kartenbewegung neu laden
-    loadStops();
-    map.on('moveend', loadStops);
 });

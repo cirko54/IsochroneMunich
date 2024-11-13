@@ -3,40 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <title>Isochronen-Karte</title>
+
+    <!-- Leaflet CSS und JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <!-- Leaflet.markercluster CSS und JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 </head>
 <body>
     <h1>Isochronen-Karte</h1>
-<div id="map" style="height: 600px;"></div>
 
-<!-- Isochronen-Berechnung Bedienfeld -->
-<div id="map" style="height: 600px;"></div>
+    <!-- Karten-Div -->
+    <div id="map" style="height: 600px;"></div>
 
-<!-- Isochronen-Berechnung Bedienfeld -->
-<div id="isochrone-controls" style="position: absolute; top: 10px; left: 10px; z-index: 1000; background: white; padding: 10px; border-radius: 5px;">
-    <h3>Isochronen-Berechnung</h3>
-    <label for="transport-mode">Transportmodus:</label>
-<select id="transport-mode">
-    <option value="walking">Zu Fuß</option>
-    <option value="biking">Fahrrad</option>
-    <option value="public_transport" selected>ÖPNV</option>
-    <option value="driving">Auto</option>
-</select>
-    <br><br>
-    <label for="max-travel-time">Maximale Reisezeit (Minuten):</label>
-    <input type="number" id="max-travel-time" value="15" min="1" step="1">
-    <br><br>
-    <button id="calculate-isochrone">Isochrone berechnen</button>
-</div>
+    <!-- Isochronen-Berechnung Bedienfeld -->
+    <div id="isochrone-controls" style="position: absolute; top: 10px; left: 10px; z-index: 1000; background: white; padding: 10px; border-radius: 5px;">
+        <h3>Isochronen-Berechnung</h3>
+        <label for="transport-mode">Transportmodus:</label>
+        <select id="transport-mode">
+            <option value="walking">Zu Fuß</option>
+            <option value="biking">Fahrrad</option>
+            <option value="public_transport" selected>ÖPNV</option>
+            <option value="driving">Auto</option>
+        </select>
+        <br><br>
+        <label for="max-travel-time">Maximale Reisezeit (Minuten):</label>
+        <input type="number" id="max-travel-time" value="15" min="1" step="1">
+        <br><br>
+        <button id="calculate-isochrone">Isochrone berechnen</button>
+    </div>
 
-<!-- Leaflet CSS und JS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-
-<!-- Leaflet.markercluster CSS und JS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script><!-- JavaScript-Datei wird am Ende geladen, um sicherzustellen, dass die Karte existiert --><script src="{{ url_for('static', filename='js/map.js') }}"></script>
+    <!-- JavaScript-Datei wird am Ende geladen, um sicherzustellen, dass die Karte existiert -->
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
 </body>
 </html>
